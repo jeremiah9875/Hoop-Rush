@@ -1,0 +1,734 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hoop Rush 🏀</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #101a2b;
+  color: white;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 15px;
+}
+
+.game {
+  width: 100%;
+  max-width: 480px;
+}
+
+header {
+  text-align: center;
+  padding: 12px;
+}
+
+header h1 {
+  font-size: 38px;
+  color: #ff9d24;
+  font-weight: 1000;
+  text-shadow: 2px 3px #7b3500;
+}
+
+header p {
+  color: #c8d4e5;
+  margin-top: 5px;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.stat {
+  flex: 1;
+  background: #20314c;
+  padding: 12px 5px;
+  text-align: center;
+  border-radius: 12px;
+  border: 1px solid #385171;
+}
+
+.stat small {
+  display: block;
+  color: #a9bad0;
+  margin-bottom: 5px;
+}
+
+.stat strong {
+  font-size: 21px;
+  color: #ffb13b;
+}
+
+.game-area {
+  position: relative;
+  width: 100%;
+  height: min(66vh, 610px);
+  min-height: 390px;
+  overflow: hidden;
+  border: 4px solid #ff9d24;
+  border-radius: 18px;
+  background: #75c9ee;
+  box-shadow: 0 8px 25px #0008;
+  touch-action: none;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: #101a2bba;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+.panel {
+  background: #172943;
+  border: 2px solid #ff9d24;
+  border-radius: 18px;
+  padding: 25px 18px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.panel h2 {
+  color: #ffad32;
+  font-size: 29px;
+  margin-bottom: 12px;
+}
+
+.panel p {
+  color: #d3dfed;
+  line-height: 1.5;
+  margin-bottom: 15px;
+}
+
+button {
+  border: none;
+  cursor: pointer;
+  border-radius: 11px;
+  padding: 13px 17px;
+  font-size: 16px;
+  font-weight: bold;
+  transition: transform .12s, filter .12s;
+}
+
+button:active {
+  transform: scale(.96);
+}
+
+.primary {
+  background: #ff9824;
+  color: #241300;
+  width: 100%;
+}
+
+.secondary {
+  background: #304969;
+  color: white;
+  width: 100%;
+  margin-top: 9px;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.controls button {
+  background: #203653;
+  color: white;
+  border: 1px solid #456180;
+}
+
+.shop {
+  margin-top: 15px;
+  background: #192b43;
+  padding: 16px;
+  border-radius: 15px;
+  border: 1px solid #385171;
+}
+
+.shop h2 {
+  color: #ffad32;
+  margin-bottom: 12px;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.skin {
+  background: #263d5a;
+  border: 1px solid #49617e;
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.skin .ball {
+  font-size: 36px;
+  margin-bottom: 7px;
+}
+
+.skin h3 {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.skin p {
+  color: #ffbd52;
+  font-size: 13px;
+  margin-bottom: 9px;
+}
+
+.skin button {
+  width: 100%;
+  padding: 9px 4px;
+  font-size: 13px;
+  background: #ff9824;
+  color: #261500;
+}
+
+.skin button:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+.footer {
+  color: #8fa5c1;
+  font-size: 12px;
+  text-align: center;
+  margin: 15px 0;
+}
+</style>
+</head>
+
+<body>
+<div class="game">
+
+<header>
+  <h1>🏀 HOOP RUSH</h1>
+  <p>FLY HIGH. SCORE BIG. BECOME A LEGEND.</p>
+</header>
+
+<div class="stats">
+  <div class="stat">
+    <small>SCORE</small>
+    <strong id="score">0</strong>
+  </div>
+  <div class="stat">
+    <small>COINS</small>
+    <strong id="coins">0</strong>
+  </div>
+  <div class="stat">
+    <small>BEST</small>
+    <strong id="best">0</strong>
+  </div>
+</div>
+
+<div class="game-area" id="gameArea">
+  <canvas id="canvas"></canvas>
+
+  <div class="overlay" id="overlay">
+    <div class="panel">
+      <h2 id="panelTitle">HOOP RUSH 🏀</h2>
+      <p id="panelText">
+        Bounce your basketball through the hoops!
+        Every hoop earns you 10 coins.
+      </p>
+      <button class="primary" id="playButton">START GAME</button>
+      <button class="secondary" id="shopButton">BASKETBALL SHOP</button>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="tapButton">🏀 BOUNCE</button>
+  <button id="restartButton">🔄 RESTART</button>
+</div>
+
+<div class="shop" id="shop">
+  <h2>🏀 Basketball Shop</h2>
+  <p style="color:#a9bad0;font-size:13px;margin-bottom:12px">
+    Unlock basketballs using your earned coins.
+  </p>
+  <div class="shop-grid" id="shopGrid"></div>
+</div>
+
+<div class="footer">
+  HOOP RUSH • Keep bouncing!
+</div>
+
+</div>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+const scoreText = document.getElementById("score");
+const coinsText = document.getElementById("coins");
+const bestText = document.getElementById("best");
+const overlay = document.getElementById("overlay");
+const panelTitle = document.getElementById("panelTitle");
+const panelText = document.getElementById("panelText");
+const playButton = document.getElementById("playButton");
+const shop = document.getElementById("shop");
+
+const SAVE_KEY = "hoopRushSave_v1";
+
+const skins = [
+  {name:"Classic", emoji:"🏀", price:0},
+  {name:"Blue Ball", emoji:"🔵", price:100},
+  {name:"Gold Ball", emoji:"🟡", price:250},
+  {name:"Purple Ball", emoji:"🟣", price:400},
+  {name:"Green Ball", emoji:"🟢", price:600},
+  {name:"Fire Ball", emoji:"🔥", price:1000},
+  {name:"Diamond", emoji:"💎", price:2000},
+  {name:"Rainbow", emoji:"🌈", price:3500}
+];
+
+let save = loadSave();
+
+function loadSave() {
+  try {
+    const data = JSON.parse(localStorage.getItem(SAVE_KEY));
+    if (data && Array.isArray(data.unlocked)) {
+      return {
+        coins: Math.max(0, Number(data.coins) || 0),
+        best: Math.max(0, Number(data.best) || 0),
+        unlocked: [...new Set(["Classic", ...data.unlocked])],
+        selected: typeof data.selected === "string"
+          ? data.selected : "Classic"
+      };
+    }
+  } catch(e) {}
+  return {
+    coins: 0,
+    best: 0,
+    unlocked: ["Classic"],
+    selected: "Classic"
+  };
+}
+
+function saveGame() {
+  localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+}
+
+function updateStats() {
+  scoreText.textContent = score;
+  coinsText.textContent = save.coins;
+  bestText.textContent = save.best;
+}
+
+function resize() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(rect.width * dpr);
+  canvas.height = Math.round(rect.height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  W = rect.width;
+  H = rect.height;
+  ball.x = W * .27;
+
+  if (state !== "playing") {
+    ball.y = H * .48;
+  }
+}
+
+let W = 400;
+let H = 600;
+
+const ball = {
+  x: 100,
+  y: 300,
+  vy: 0,
+  radius: 18
+};
+
+let hoops = [];
+let score = 0;
+let state = "menu";
+let lastTime = 0;
+let spawnTimer = 0;
+let elapsed = 0;
+
+const gravity = 1250;
+const bouncePower = -430;
+
+function createHoop(x) {
+  return {
+    x: x,
+    y: H * (.30 + Math.random() * .40),
+    passed: false,
+    width: 58
+  };
+}
+
+function startGame() {
+  score = 0;
+  elapsed = 0;
+  spawnTimer = 0;
+  hoops = [createHoop(W + 100)];
+
+  ball.y = H * .48;
+  ball.vy = 0;
+
+  state = "playing";
+  overlay.classList.add("hidden");
+
+  updateStats();
+  lastTime = performance.now();
+}
+
+function endGame() {
+  if (state !== "playing") return;
+
+  state = "over";
+
+  if (score > save.best) {
+    save.best = score;
+  }
+
+  saveGame();
+  updateStats();
+
+  panelTitle.textContent = "GAME OVER! 🏀";
+  panelText.textContent =
+    "You scored " + score + " hoops! Great game!";
+
+  playButton.textContent = "PLAY AGAIN";
+  overlay.classList.remove("hidden");
+}
+
+function bounce() {
+  if (state === "menu" || state === "over") {
+    startGame();
+    ball.vy = bouncePower;
+    return;
+  }
+
+  if (state === "playing") {
+    ball.vy = bouncePower;
+  }
+}
+
+function update(dt) {
+  if (state !== "playing") return;
+
+  elapsed += dt;
+
+  const speed = Math.min(205 + score * 4, 370);
+  const spacing = Math.max(245, 330 - score * 2);
+
+  ball.vy += gravity * dt;
+  ball.y += ball.vy * dt;
+
+  if (ball.y - ball.radius < 0 || ball.y + ball.radius > H) {
+    endGame();
+    return;
+  }
+
+  for (let hoop of hoops) {
+    hoop.x -= speed * dt;
+
+    if (!hoop.passed && hoop.x + hoop.width / 2 < ball.x) {
+      hoop.passed = true;
+
+      // The ball must pass through the center of the hoop.
+      if (Math.abs(ball.y - hoop.y) < 37) {
+        score++;
+        save.coins += 10;
+        updateStats();
+        saveGame();
+      } else {
+        endGame();
+        return;
+      }
+    }
+
+    // Avoid passing through the side or bottom of the rim.
+    const dx = Math.abs(ball.x - hoop.x);
+    const dy = Math.abs(ball.y - hoop.y);
+
+    if (dx < 9 && dy > 30 && dy < 65) {
+      endGame();
+      return;
+    }
+  }
+
+  if (hoops.length === 0 ||
+      hoops[hoops.length - 1].x < W - spacing) {
+    hoops.push(createHoop(W + 80));
+  }
+
+  hoops = hoops.filter(h => h.x > -100);
+}
+
+function drawBackground() {
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, "#65c5f0");
+  sky.addColorStop(1, "#d4edff");
+
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, H);
+
+  // Clouds
+  ctx.fillStyle = "rgba(255,255,255,.7)";
+
+  for (let i = 0; i < 5; i++) {
+    let x = (i * 115 + 35) % (W + 100);
+    let y = 65 + (i % 3) * 75;
+
+    ctx.beginPath();
+    ctx.arc(x, y, 19, 0, Math.PI * 2);
+    ctx.arc(x + 20, y - 8, 23, 0, Math.PI * 2);
+    ctx.arc(x + 42, y, 18, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Basketball court
+  const floorY = H - 50;
+
+  ctx.fillStyle = "#d98c42";
+  ctx.fillRect(0, floorY, W, 50);
+
+  ctx.fillStyle = "#f2b66b";
+  ctx.fillRect(0, floorY, W, 7);
+
+  ctx.strokeStyle = "rgba(255,255,255,.65)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, floorY + 30);
+  ctx.lineTo(W, floorY + 30);
+  ctx.stroke();
+}
+
+function drawBall() {
+  ctx.save();
+
+  ctx.translate(ball.x, ball.y);
+
+  ctx.fillStyle = "#ed7b19";
+  ctx.beginPath();
+  ctx.arc(0, 0, ball.radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "#572600";
+  ctx.lineWidth = 2;
+
+  ctx.beginPath();
+  ctx.arc(0, 0, ball.radius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(-ball.radius, 0);
+  ctx.lineTo(ball.radius, 0);
+  ctx.moveTo(0, -ball.radius);
+  ctx.lineTo(0, ball.radius);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(-2, 0, ball.radius, -Math.PI / 2, Math.PI / 2);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(2, 0, ball.radius, Math.PI / 2, Math.PI * 1.5);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawHoop(hoop) {
+  const x = hoop.x;
+  const y = hoop.y;
+
+  ctx.save();
+
+  // Backboard
+  ctx.fillStyle = "#f6f6f6";
+  ctx.fillRect(x + 29, y - 45, 9, 75);
+
+  ctx.strokeStyle = "#dc4b26";
+  ctx.lineWidth = 3;
+  ctx.strokeRect(x + 29, y - 45, 9, 75);
+
+  // Net
+  ctx.strokeStyle = "white";
+  ctx.lineWidth = 1.5;
+
+  for (let i = 0; i <= 4; i++) {
+    const startX = x - 28 + i * 14;
+    const endX = x - 17 + i * 9;
+
+    ctx.beginPath();
+    ctx.moveTo(startX, y + 7);
+    ctx.lineTo(endX, y + 43);
+    ctx.stroke();
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(x - 28, y + 7);
+  ctx.lineTo(x + 28, y + 7);
+  ctx.stroke();
+
+  // Orange rim
+  ctx.strokeStyle = "#e84d19";
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.ellipse(x, y, 29, 7, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function draw() {
+  drawBackground();
+
+  for (const hoop of hoops) {
+    drawHoop(hoop);
+  }
+
+  drawBall();
+
+  if (state === "playing") {
+    ctx.fillStyle = "#17334e";
+    ctx.font = "bold 20px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("SCORE: " + score, W / 2, 38);
+  }
+}
+
+function loop(timestamp) {
+  const dt = Math.min((timestamp - lastTime) / 1000, .035);
+  lastTime = timestamp;
+
+  update(dt);
+  draw();
+
+  requestAnimationFrame(loop);
+}
+
+playButton.addEventListener("click", startGame);
+
+document.getElementById("tapButton")
+  .addEventListener("click", bounce);
+
+document.getElementById("restartButton")
+  .addEventListener("click", startGame);
+
+canvas.addEventListener("pointerdown", (event) => {
+  event.preventDefault();
+  bounce();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.code === "Space" || event.code === "ArrowUp") {
+    event.preventDefault();
+
+    if (!event.repeat) bounce();
+  }
+});
+
+document.getElementById("shopButton")
+  .addEventListener("click", () => {
+    shop.scrollIntoView({behavior:"smooth"});
+  });
+
+function renderShop() {
+  const grid = document.getElementById("shopGrid");
+  grid.innerHTML = "";
+
+  skins.forEach(skin => {
+    const unlocked = save.unlocked.includes(skin.name);
+    const selected = save.selected === skin.name;
+
+    const card = document.createElement("div");
+    card.className = "skin";
+
+    const ballIcon = document.createElement("div");
+    ballIcon.className = "ball";
+    ballIcon.textContent = skin.emoji;
+
+    const title = document.createElement("h3");
+    title.textContent = skin.name;
+
+    const price = document.createElement("p");
+    price.textContent = skin.price === 0
+      ? "FREE"
+      : skin.price + " coins";
+
+    const button = document.createElement("button");
+
+    if (selected) {
+      button.textContent = "EQUIPPED";
+      button.disabled = true;
+    } else if (unlocked) {
+      button.textContent = "EQUIP";
+    } else {
+      button.textContent = "BUY";
+    }
+
+    button.addEventListener("click", () => {
+      if (save.unlocked.includes(skin.name)) {
+        save.selected = skin.name;
+      } else if (save.coins >= skin.price) {
+        save.coins -= skin.price;
+        save.unlocked.push(skin.name);
+        save.selected = skin.name;
+      } else {
+        alert("Not enough coins! Play more games to earn coins.");
+        return;
+      }
+
+      saveGame();
+      updateStats();
+      renderShop();
+    });
+
+    card.append(ballIcon, title, price, button);
+    grid.appendChild(card);
+  });
+}
+
+window.addEventListener("resize", resize);
+
+resize();
+renderShop();
+updateStats();
+
+lastTime = performance.now();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
